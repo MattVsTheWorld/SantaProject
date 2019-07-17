@@ -5,6 +5,13 @@ import (
 	"time"
 )
 
+/*
+ch <- v    // Send v to channel ch.		('output su canale)
+v := <-ch  // Receive from ch, and		(input su canale)
+           // assign value to v.
+(The data flows in the direction of the arrow.)
+*/
+
 type Signal struct{}
 
 type SantaSem struct{
@@ -13,6 +20,7 @@ type SantaSem struct{
 }
 
 func (self *SantaSem) Run() {
+	fmt.Println("Santa semaphore goroutine started")
 	for {
 		<- self.Wait
 		fmt.Println("Santa semaphore put on wait")
@@ -27,6 +35,7 @@ type Sem struct{
 }
 
 func (self *Sem) Run() {
+	fmt.Println("Mutex semaphore goroutine started")
 	for {
 		// aspetta il segnale su wait, lo butta
 		<- self.Wait
@@ -47,18 +56,24 @@ type DeerCounter struct{
 
 func (self *DeerCounter) Run() {
 	var curVal int
+	fmt.Println("DeerCounter goroutine started")
 	for {
 		curVal = self.deerNum
 		if curVal == 9 {
 			// TODO: signal Santa
-			self.PrepareSleigh <- Signal{}
+			// fmt.Printf("I'm in Pog\n")
+			<- self.PrepareSleigh
 			curVal = 0	// reset counter
 
 		} else if curVal < 9 {
 			select {
-				case self.Return <- Signal{}: 	// TODO: In realta' sara' una renna a dirlo
+				case <- self.Return: 		// TODO: check, ma ha senso che lo riceva
 					curVal = curVal + 1
 				case self.CheckDeers <- Signal{}:
+					fmt.Println("No 9 deers are available: go help elves")
+				//Timeout if no choice is made
+				//case <-time.After(5*time.Second):
+				//	fmt.Println("Deer Counter timed out after 5s")
 		}
 
 		}
@@ -82,15 +97,23 @@ func santa (santSem *SantaSem, mutexSem *Sem, deerCount *DeerCounter){
 		// invia il segnale su wait
 		santSem.Wait <- Signal{}
 		mutexSem.Wait <- Signal{}
-		time.Sleep()
+		// ++ Wait a second ++
+		time.Sleep(time.Duration(time.Second))
 		fmt.Println("Santa is awake, choosing who to help...")
 		select {
 			//SantaDeers
 			case deerCount.PrepareSleigh <- Signal{}:
 				fmt.Printf("There are 9 deer, C H R I S T M A S T I M E\n")
+				// TODO: signal the 9 deers
+				mutexSem.Signal <- Signal{}
 			// checkDeers.SantaElves
-			case deerCount.CheckDeers <- Signal{}:
+			case <- deerCount.CheckDeers:
 				fmt.Printf("Deer are not 9; help elves\n")
+				// TODO: signal/help the 3 elves
+				mutexSem.Signal <- Signal{}
+			//Timeout if no choice is made
+			//case <-time.After(5*time.Second):
+			//	fmt.Println("Santa timed out after 5s")
 		}
 
 	}
@@ -105,9 +128,16 @@ func main(){
 	go ms.Run()
 	dc := DeerCounter{9, make(chan Signal), make(chan Signal),
 	                make(chan Signal), make(chan Signal)}
+	go dc.Run()
+	//	fmt.Printf("Bro?")
 	go santa(&ss, &ms, &dc)
 
-	time.Sleep(time.Duration(5*time.Second))
+	// All goroutines are killed when main ends
+	//for {
+	time.Sleep(time.Duration(10*time.Second))
+	//}
+
+
 }
 
 
