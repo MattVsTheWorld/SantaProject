@@ -1,0 +1,2 @@
+Usare comunicazione su canali
+canali con buffer
