@@ -113,7 +113,8 @@ func (self *DeerCounter) Run(santaSem *Sem) {
 	}
 }
 
-/* SANTA
+// Santa
+/*
 santaSem . wait ()
 mutex . wait ()
 	if reindeer >= 9:
@@ -124,7 +125,6 @@ mutex . wait ()
 		helpElves ()
 mutex . signal ()
 */
-
 func santa (santaSem *Sem, mutexSem *Sem, deerSem *Sem, deerCounter *DeerCounter, elfCounter *ElfCounter){
 	for {
 		// invia il segnale su wait
@@ -164,7 +164,8 @@ func santa (santaSem *Sem, mutexSem *Sem, deerSem *Sem, deerCounter *DeerCounter
 	}
 }
 
-/* REINDEER
+// Reindeer
+/*
 mutex . wait ()
 	reindeer += 1
 	if reindeer == 9:
@@ -174,10 +175,7 @@ mutex . signal ()
 reindeerSem . wait ()
 getHitched ()
 */
-
 func reindeer (mutexSem *Sem, deerSem *Sem, deerCount *DeerCounter, deerNo int){
-
-
 	//for {	// TODO: endless loop?
 		fmt.Printf("Reindeer %d is going on vacation... Will be back eventually!\n", deerNo)
 		// Deer stays on vacation for 4 to 12 seconds.
@@ -197,8 +195,9 @@ func reindeer (mutexSem *Sem, deerSem *Sem, deerCount *DeerCounter, deerNo int){
 		deerSem.Wait <- Signal{}
 		fmt.Printf("Deer %d is being hitched...\n", deerNo)
 	//}
-
 }
+
+// Elf
 /*
 elfTex . wait ()
 mutex . wait ()
@@ -217,8 +216,6 @@ mutex . wait ()
 		elfTex . signal ()
 mutex . signal ()
 */
-
-
 func elf(mutexSem *Sem, elfTex *Sem, elfCount *ElfCounter, elfId int){
 	fmt.Printf("Elf %d has gone to work ...\n", elfId)
 	for {

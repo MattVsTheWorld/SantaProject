@@ -15,8 +15,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/main.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="29">
-              <caret line="249" column="62" lean-forward="true" selection-start-line="249" selection-start-column="62" selection-end-line="249" selection-end-column="62" />
+            <state relative-caret-position="1292">
+              <caret line="257" column="18" lean-forward="true" selection-start-line="257" selection-start-column="18" selection-end-line="257" selection-end-column="18" />
               <folding>
                 <element signature="e#817#864#0" />
                 <element signature="n#!!block;n#Run#1" />
@@ -67,6 +67,7 @@
       <find>elfID</find>
       <find>helpElf</find>
       <find>elfCounter</find>
+      <find>prepare</find>
     </findStrings>
   </component>
   <component name="GOROOT" path="C:\Go" />
@@ -192,7 +193,7 @@
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.3236715" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.4009662" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.4009662" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.3993559" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -215,8 +216,8 @@
     <entry file="file://$PROJECT_DIR$/src/package/package.go" />
     <entry file="file://$PROJECT_DIR$/src/main/main.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="29">
-          <caret line="249" column="62" lean-forward="true" selection-start-line="249" selection-start-column="62" selection-end-line="249" selection-end-column="62" />
+        <state relative-caret-position="1292">
+          <caret line="257" column="18" lean-forward="true" selection-start-line="257" selection-start-column="18" selection-end-line="257" selection-end-column="18" />
           <folding>
             <element signature="e#817#864#0" />
             <element signature="n#!!block;n#Run#1" />
