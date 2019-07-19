@@ -15,6 +15,19 @@ v := <-ch  // Receive from ch, and		(input su canale)
 
 type Signal struct{}
 
+//type Sleigh struct{
+//	DeerReady chan Signal
+//	SantaReady chan Signal
+//}
+//
+//func (self *Sleigh) Run(){
+//	for{
+//		<- self.SantaReady
+//		<- self.DeerReady
+//		fmt.Printf("MERRY CHRISTMAS\n")
+//	}
+//}
+
 type SantaSem struct{
 	Wait chan Signal
 	Signal chan Signal
@@ -24,9 +37,9 @@ func (self *SantaSem) Run() {
 	fmt.Println("Santa semaphore goroutine started")
 	for {
 		<- self.Wait
-		fmt.Println("> Wait called: someone accessed SantaSem...")
+		//fmt.Println("> Wait called: someone accessed SantaSem...")
 		<- self.Signal
-		fmt.Println("> Signal called: SantaSem released...\n-------------")
+		//fmt.Println("> Signal called: SantaSem released...\n-------------")
 	}
 }
 
@@ -40,9 +53,9 @@ func (self *Sem) Run() {
 	for {
 		// aspetta il segnale su wait, lo butta
 		<- self.Wait
-		fmt.Println("> Wait called: someone accessed Sem...")
+		//fmt.Println("> Wait called: someone accessed Sem...")
 		<- self.Signal
-		fmt.Println("> Signal called: Sem released...\n-------------")
+		//fmt.Println("> Signal called: Sem released...\n-------------")
 	}
 }
 
@@ -56,16 +69,16 @@ func (self *DeerSem) Run() {
 	for {
 		// aspetta il segnale su wait, lo butta
 		<- self.Wait
-		fmt.Println("> Wait called: someone accessed DeerSem...")
+		//fmt.Println("> Wait called: someone accessed DeerSem...")
 		<- self.Signal
-		fmt.Println("> Signal called: DeerSem released...\n-------------")
+		//fmt.Println("> Signal called: DeerSem released...\n-------------")
 	}
 }
 
 type DeerCounter struct{
 	deerNum 		int
 	Return 			chan int
-	Reset 			chan Signal	// TODO: check: using all?
+	//Reset 			chan Signal	// TODO: check: using all?
 	CheckDeers 		chan Signal
 	PrepareSleigh 	chan Signal
 	//santaSignal chan Signal
@@ -78,25 +91,25 @@ func (self *DeerCounter) Run(ss *SantaSem) {
 	for {
 
 		if curVal == 9 {
-			fmt.Printf("WE HERE BOYS\n")
+			fmt.Printf("All the deers have returned; waking up santa...\n")
+			// Signal santa
 			ss.Signal <- Signal{}
-			// TODO: signal Santa / Prepare sleight
-			// fmt.Printf("I'm in Pog\n")
+			// Ask to prepare the sleigh
 			<- self.PrepareSleigh
 			curVal = 0	// reset counter
 
 		} else if curVal < 9 {
 			select {
-				case i:= <- self.Return: 		// TODO: check, ma ha senso che lo riceva
-					fmt.Printf("Deer n°%d has returned.\n",i)
-					curVal = curVal + 1
-					fmt.Printf("Number of deers: %d\n", curVal)
-				case self.CheckDeers <- Signal{}:
-					fmt.Println("No 9 deers are available: go help elves")
+			case i:= <- self.Return: 		// TODO: check, ma ha senso che lo riceva
+				fmt.Printf("> Deer n°%d has returned.\n",i)
+				curVal = curVal + 1
+				fmt.Printf("Number of deers: %d\n", curVal)
+			case self.CheckDeers <- Signal{}:
+				fmt.Println("No 9 deers are available: go help elves")
 				//Timeout if no choice is made
 				//case <-time.After(5*time.Second):
 				//	fmt.Println("Deer Counter timed out after 5s")
-		}
+			}
 
 		}
 	}
@@ -114,7 +127,7 @@ mutex . wait ()
 mutex . signal ()
 */
 
-func santa (santSem *SantaSem, mutexSem *Sem, deerCount *DeerCounter){
+func santa (santSem *SantaSem, mutexSem *Sem, deerSem *DeerSem, deerCount *DeerCounter){
 	for {
 		// invia il segnale su wait
 		santSem.Wait <- Signal{}
@@ -123,15 +136,18 @@ func santa (santSem *SantaSem, mutexSem *Sem, deerCount *DeerCounter){
 		time.Sleep(time.Duration(time.Second))
 		fmt.Println("Santa is awake, choosing who to help...")
 		select {
-			//SantaDeers
-			case deerCount.PrepareSleigh <- Signal{}:
-				fmt.Printf("There are 9 deer, C H R I S T M A S T I M E\n")
-				// TODO: signal the 9 deers
+		//SantaDeers
+		case deerCount.PrepareSleigh <- Signal{}:
+			fmt.Printf("* prepareSleigh *")
+			// Signal deers
+			for i:=1; i<=9; i++ {
+				deerSem.Signal <- Signal{}
+			}
 
-			// checkDeers.SantaElves
-			case <- deerCount.CheckDeers:
-				fmt.Printf("Deer are not 9; help elves\n")
-				// TODO: signal/help the 3 elves
+		// checkDeers.SantaElves
+		case <- deerCount.CheckDeers:
+			fmt.Printf("Deer are not 9; help elves\n")
+			// TODO: signal/help the 3 elves
 			//Timeout if no choice is made
 			//case <-time.After(5*time.Second):
 			//	fmt.Println("Santa timed out after 5s")
@@ -153,11 +169,13 @@ getHitched ()
 */
 
 func reindeer (mutexSem *Sem, deerSem *DeerSem, deerCount *DeerCounter, deerNo int){
-	fmt.Printf("Reindeer %d is going on vacation... Will be back eventually!\n", deerNo)
-	// Deer stays on vacation for 2 to 6 seconds.
-	time.Sleep(time.Duration(rand.Int63n(2*1e9) + 4*1e9))
+
 
 	for {
+		fmt.Printf("Reindeer %d is going on vacation... Will be back eventually!\n", deerNo)
+		// Deer stays on vacation for 2 to 6 seconds.
+		time.Sleep(time.Duration(rand.Int63n(2*1e9) + 4*1e9))
+
 		/* sleep for at most 2 seconds */
 		time.Sleep(time.Duration(rand.Int63n(2*1e9)))
 		mutexSem.Wait <- Signal{}
@@ -167,9 +185,9 @@ func reindeer (mutexSem *Sem, deerSem *DeerSem, deerCount *DeerCounter, deerNo i
 		/* sleep for at most 2 seconds */
 		time.Sleep(time.Duration(rand.Int63n(2*1e9)))
 		mutexSem.Signal <- Signal{}
-
+		// TODO: getHitched? Not good! They go on vacation!
 		deerSem.Wait <- Signal{}
-		// TODO: getHitched?
+		fmt.Printf("Deer %d is being hitched...\n", deerNo)
 	}
 
 }
@@ -184,24 +202,19 @@ func main(){
 	go ms.Run()
 	ds := DeerSem{ make(chan Signal), make(chan Signal)}
 	go ds.Run()
-	// Lock the warming hut
+	// Lock the warming hut (so deers don't go out prematurely)
 	ds.Wait <- Signal{}
-	dc := DeerCounter{0, make(chan int), make(chan Signal),
-	                make(chan Signal), make(chan Signal)}
+	dc := DeerCounter{0, make(chan int),
+		make(chan Signal), make(chan Signal)}
 	go dc.Run(&ss)
 
 	for i:= 1; i<= 9; i++{
 		go reindeer(&ms,&ds,&dc,i)
 	}
-	//	fmt.Printf("Bro?")
-	go santa(&ss, &ms, &dc)
+	go santa(&ss, &ms, &ds, &dc)
 
 	// All goroutines are killed when main ends
-	//for {
-	time.Sleep(time.Duration(30*time.Second))
-	//}
-
-
+	time.Sleep(time.Duration(60*time.Second))
 }
 
 
