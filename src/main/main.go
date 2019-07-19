@@ -15,81 +15,23 @@ v := <-ch  // Receive from ch, and		(input su canale)
 
 type Signal struct{}
 
-//type Sleigh struct{
-//	DeerReady chan Signal
-//	SantaReady chan Signal
-//}
-//
-//func (self *Sleigh) Run(){
-//	for{
-//		<- self.SantaReady
-//		<- self.DeerReady
-//		fmt.Printf("MERRY CHRISTMAS\n")
-//	}
-//}
-
-type SantaSem struct{
-	Wait chan Signal
-	Signal chan Signal
-}
-
-func (self *SantaSem) Run() {
-	fmt.Println("> Santa semaphore goroutine started")
-	for {
-		<- self.Wait
-		//fmt.Println("> Wait called: someone accessed SantaSem...")
-		<- self.Signal
-		//fmt.Println("> Signal called: SantaSem released...\n-------------")
-	}
-}
-
 type Sem struct{
-	Wait chan Signal
-	Signal chan Signal
+	name 	string
+	Wait 	chan Signal
+	Signal 	chan Signal
 }
 
 func (self *Sem) Run() {
-	fmt.Println("> Mutex semaphore goroutine started")
+	fmt.Printf("> %s semaphore goroutine started\n", self.name)
 	for {
 		// aspetta il segnale su wait, lo butta
 		<- self.Wait
-		//fmt.Println("> Wait called: someone accessed Sem...")
+		//fmt.Printf("> Wait called: someone accessed %s ...\n", self.name)
 		<- self.Signal
-		//fmt.Println("> Signal called: Sem released...\n-------------")
+		//fmt.Println("> Signal called: %s released...\n-------------\n", self.name)
 	}
 }
 
-type ElfSem struct{
-	Wait chan Signal
-	Signal chan Signal
-}
-
-func (self *ElfSem) Run() {
-	fmt.Println("> ElfTex semaphore goroutine started")
-	for {
-		// aspetta il segnale su wait, lo butta
-		<- self.Wait
-		//fmt.Println("> Wait called: someone accessed Sem...")
-		<- self.Signal
-		//fmt.Println("> Signal called: Sem released...\n-------------")
-	}
-}
-
-type DeerSem struct{
-	Wait chan Signal
-	Signal chan Signal
-}
-
-func (self *DeerSem) Run() {
-	fmt.Println("> Deer semaphore goroutine started")
-	for {
-		// aspetta il segnale su wait, lo butta
-		<- self.Wait
-		//fmt.Println("> Wait called: someone accessed DeerSem...")
-		<- self.Signal
-		//fmt.Println("> Signal called: DeerSem released...\n-------------")
-	}
-}
 
 type ElfCounter struct{
 	elfNum			int
@@ -97,9 +39,9 @@ type ElfCounter struct{
 	solveProblem	chan int
 }
 
-func (self *ElfCounter) Run(elfTex *ElfSem, santaSem *SantaSem){
+func (self *ElfCounter) Run(elfTex *Sem, santaSem *Sem){
 	var curVal int
-	fmt.Printf("> ElfCounter goroutine started")
+	fmt.Printf("> elfCounter goroutine started")
 	curVal = self.elfNum
 	for {
 		if curVal == 3{
@@ -132,9 +74,9 @@ type DeerCounter struct{
 	//santaSignal chan Signal
 }
 
-func (self *DeerCounter) Run(santaSem *SantaSem) {
+func (self *DeerCounter) Run(santaSem *Sem) {
 	var curVal int
-	fmt.Println("> DeerCounter goroutine started")
+	fmt.Println("> deerCounter goroutine started")
 	curVal = self.deerNum
 	for {
 
@@ -175,10 +117,10 @@ mutex . wait ()
 mutex . signal ()
 */
 
-func santa (santSem *SantaSem, mutexSem *Sem, deerSem *DeerSem, deerCount *DeerCounter){
+func santa (santaSem *Sem, mutexSem *Sem, deerSem *Sem, deerCount *DeerCounter){
 	for {
 		// invia il segnale su wait
-		santSem.Wait <- Signal{}
+		santaSem.Wait <- Signal{}
 		mutexSem.Wait <- Signal{}
 		// ++ Wait a second ++
 		time.Sleep(time.Duration(time.Second))
@@ -219,7 +161,7 @@ reindeerSem . wait ()
 getHitched ()
 */
 
-func reindeer (mutexSem *Sem, deerSem *DeerSem, deerCount *DeerCounter, deerNo int){
+func reindeer (mutexSem *Sem, deerSem *Sem, deerCount *DeerCounter, deerNo int){
 
 
 	//for {	// TODO: endless loop?
@@ -261,7 +203,7 @@ mutex . wait ()
 mutex . signal ()
 */
 
-func elf (mutexSem *Sem, elfTex *ElfSem, deerNo int){
+func elf (mutexSem *Sem, elfTex *Sem, deerNo int){
 	for {
 		elfTex.Wait <- Signal{}
 		mutexSem.Wait <- Signal{}
@@ -272,13 +214,13 @@ func elf (mutexSem *Sem, elfTex *ElfSem, deerNo int){
 
 func main(){
 	fmt.Println("> Starting program...")
-	ss := SantaSem{ make(chan Signal), make(chan Signal)}
+	ss := Sem{"santaSem", make(chan Signal), make(chan Signal)}
 	go ss.Run()
 	// put santa to sleep
 	ss.Wait <- Signal{}
-	ms := Sem{ make(chan Signal), make(chan Signal)}
+	ms := Sem{"mutexSem", make(chan Signal), make(chan Signal)}
 	go ms.Run()
-	ds := DeerSem{ make(chan Signal), make(chan Signal)}
+	ds := Sem{"deerSem", make(chan Signal), make(chan Signal)}
 	go ds.Run()
 	// Lock the warming hut (so deers don't go out prematurely)
 	ds.Wait <- Signal{}
