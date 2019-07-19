@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b3ebdcf1-55af-454e-951d-6cca116596c9" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/main.go" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -16,8 +15,21 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/main.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="221">
-              <caret line="131" column="27" lean-forward="true" selection-start-line="131" selection-start-column="27" selection-end-line="131" selection-end-column="27" />
+            <state relative-caret-position="29">
+              <caret line="249" column="62" lean-forward="true" selection-start-line="249" selection-start-column="62" selection-end-line="249" selection-end-column="62" />
+              <folding>
+                <element signature="e#817#864#0" />
+                <element signature="n#!!block;n#Run#1" />
+                <element signature="e#1887#1953#0" />
+                <element signature="n#!!block;n#Run#4" />
+                <element signature="e#2812#2937#0" />
+                <element signature="n#!!block;n#Run#5" />
+                <element signature="e#2766#2947#0" />
+                <element signature="n#!!block;n#santa#0" />
+                <element signature="e#4077#4219#0" />
+                <element signature="n#!!block;n#reindeer#0" />
+                <element signature="e#4980#5210#0" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -52,6 +64,9 @@
   <component name="FindInProjectRecents">
     <findStrings>
       <find>* pre</find>
+      <find>elfID</find>
+      <find>helpElf</find>
+      <find>elfCounter</find>
     </findStrings>
   </component>
   <component name="GOROOT" path="C:\Go" />
@@ -177,7 +192,7 @@
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.3236715" />
-      <window_info anchor="bottom" id="Run" order="2" weight="0.4009662" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.4009662" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.3993559" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -200,8 +215,21 @@
     <entry file="file://$PROJECT_DIR$/src/package/package.go" />
     <entry file="file://$PROJECT_DIR$/src/main/main.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="221">
-          <caret line="131" column="27" lean-forward="true" selection-start-line="131" selection-start-column="27" selection-end-line="131" selection-end-column="27" />
+        <state relative-caret-position="29">
+          <caret line="249" column="62" lean-forward="true" selection-start-line="249" selection-start-column="62" selection-end-line="249" selection-end-column="62" />
+          <folding>
+            <element signature="e#817#864#0" />
+            <element signature="n#!!block;n#Run#1" />
+            <element signature="e#1887#1953#0" />
+            <element signature="n#!!block;n#Run#4" />
+            <element signature="e#2812#2937#0" />
+            <element signature="n#!!block;n#Run#5" />
+            <element signature="e#2766#2947#0" />
+            <element signature="n#!!block;n#santa#0" />
+            <element signature="e#4077#4219#0" />
+            <element signature="n#!!block;n#reindeer#0" />
+            <element signature="e#4980#5210#0" />
+          </folding>
         </state>
       </provider>
     </entry>
