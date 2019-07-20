@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"strconv"
 	"time"
 )
 
@@ -19,18 +20,18 @@ type Signal struct{}
 // Semaphore struct and behaviour
 type Sem struct{
 	name 	string
-	Wait 	chan Signal
-	Signal 	chan Signal
+	Wait 	chan string
+	Signal 	chan string
 }
 
 func (self *Sem) Run() {
 	fmt.Printf("> %s semaphore goroutine started\n", self.name)
 	for {
 		// aspetta il segnale su wait, lo butta
-		<- self.Wait
-		//fmt.Printf("> Wait called: someone accessed %s ...\n", self.name)
-		<- self.Signal
-		//fmt.Println("> Signal called: %s released...\n-------------\n", self.name)
+		whoWait := <- self.Wait
+		fmt.Printf("> Wait called: someone accessed %s (%s) ...\n", self.name, whoWait)
+		whoSignal := <- self.Signal
+		fmt.Printf("> Signal called: %s released (%s)...\n-------------\n", self.name, whoSignal)
 	}
 }
 
@@ -48,7 +49,7 @@ func (self *ElfCounter) Run(elfTex *Sem, santaSem *Sem){
 		if curVal == 3{
 			fmt.Printf("Three elves have problems! Waking up santa...\n")
 			// Signal santa
-			santaSem.Signal <- Signal{}
+			santaSem.Signal <- "elfCounter"
 			// Last elf asks for problem to be solved, but does not release elfTex
 			//elfId := <- self.solveProblem
 			<- self.solveProblem
@@ -59,14 +60,14 @@ func (self *ElfCounter) Run(elfTex *Sem, santaSem *Sem){
 		select {
 			case elfId := <- self.problem:
 				fmt.Printf("Elf n°%d has a problem!\n", elfId)
-				elfTex.Signal <- Signal{}
+				elfTex.Signal <- "elfCounter"
 				curVal++
 			case <- self.solveProblem:
 				//fmt.Printf("Solved elf n°%d's problem!\n", elfId)
 				fmt.Printf("Solved and elf's problem!\n")
 				// The last elf having its problem solved releases ElfTex
 				if curVal == 1 {
-					elfTex.Signal <- Signal{}
+					elfTex.Signal <- "elfCounter"
 				}
 				curVal--
 			}
@@ -91,7 +92,7 @@ func (self *DeerCounter) Run(santaSem *Sem) {
 		if curVal == 9 {
 			fmt.Printf("All the deers have returned; waking up santa...\n")
 			// Signal santa
-			santaSem.Signal <- Signal{}
+			santaSem.Signal <- "deerCounter"
 			// Ask to prepare the sleigh
 			<- self.PrepareSleigh
 			curVal = 0	// reset counter
@@ -128,8 +129,8 @@ mutex . signal ()
 func santa (santaSem *Sem, mutexSem *Sem, deerSem *Sem, deerCounter *DeerCounter, elfCounter *ElfCounter){
 	for {
 		// invia il segnale su wait
-		santaSem.Wait <- Signal{}
-		mutexSem.Wait <- Signal{}
+		santaSem.Wait <- "Santa"
+		mutexSem.Wait <- "Santa"
 		// ++ Wait a second ++
 		time.Sleep(time.Duration(time.Second))
 		fmt.Println("Santa is awake, choosing who to help...")
@@ -139,7 +140,7 @@ func santa (santaSem *Sem, mutexSem *Sem, deerSem *Sem, deerCounter *DeerCounter
 			fmt.Printf("* prepareSleigh *\n")
 			// Signal deers
 			for i:=1; i<=9; i++ {
-				deerSem.Signal <- Signal{}
+				deerSem.Signal <- "Santa"
 			}
 			/* sleep for at most 2 seconds */
 			time.Sleep(time.Duration(rand.Int63n(2*1e9)))
@@ -159,7 +160,7 @@ func santa (santaSem *Sem, mutexSem *Sem, deerSem *Sem, deerCounter *DeerCounter
 			//case <-time.After(5*time.Second):
 			//	fmt.Println("Santa timed out after 5s")
 		}
-		mutexSem.Signal <- Signal{}
+		mutexSem.Signal <- "Santa"
 
 	}
 }
@@ -178,21 +179,21 @@ getHitched ()
 func reindeer (mutexSem *Sem, deerSem *Sem, deerCount *DeerCounter, deerNo int){
 	//for {	// TODO: endless loop?
 		fmt.Printf("Reindeer %d is going on vacation... Will be back eventually!\n", deerNo)
-		// Deer stays on vacation for 4 to 12 seconds.
-		time.Sleep(time.Duration(rand.Int63n(4*1e9) + 8*1e9))
+		// Deer stays on vacation for 4 to 8 seconds.
+		time.Sleep(time.Duration(rand.Int63n(4*1e9) + 4*1e9))
 
 		/* sleep for at most 2 seconds */
 		time.Sleep(time.Duration(rand.Int63n(2*1e9)))
-		mutexSem.Wait <- Signal{}
+		mutexSem.Wait <- "Reindeer " + strconv.Itoa(deerNo)
 
 		deerCount.Return <- deerNo
 
 		/* sleep for at most 2 seconds */
 		time.Sleep(time.Duration(rand.Int63n(2*1e9)))
-		mutexSem.Signal <- Signal{}
+		mutexSem.Signal <- "Reindeer " + strconv.Itoa(deerNo)
 		// TODO: getHitched? Not good! They go on vacation!
 		// TODO: fine if not in loop... but if they are?
-		deerSem.Wait <- Signal{}
+		deerSem.Wait <- "Reindeer " + strconv.Itoa(deerNo)
 		fmt.Printf("Deer %d is being hitched...\n", deerNo)
 	//}
 }
@@ -221,11 +222,11 @@ func elf(mutexSem *Sem, elfTex *Sem, elfCount *ElfCounter, elfId int){
 	for {
 		// Elf works for 2 to 10 seconds before he has a problem. Yikes!
 		time.Sleep(time.Duration(rand.Int63n(8*1e9) + 2*1e9))
-		elfTex.Wait 		<- Signal{}
-		mutexSem.Wait 		<- Signal{}
+		elfTex.Wait 		<- "Elf " + strconv.Itoa(elfId)
+		mutexSem.Wait 		<- "Elf " + strconv.Itoa(elfId)
 		// The elf that wants its problem solves communicates its ID
 		elfCount.problem 	<- elfId
-		mutexSem.Signal 	<- Signal{}
+		mutexSem.Signal 	<- "Elf " + strconv.Itoa(elfId)
 		//<- self.helpElf 	// TODO: check helpElf
 
 		//mutexSem.Wait <- Signal{}		// TODO: issue, can't do this without helpElf
@@ -238,20 +239,20 @@ func elf(mutexSem *Sem, elfTex *Sem, elfCount *ElfCounter, elfId int){
 
 func main(){
 	fmt.Println("> Starting program...")
-	const numElves = 20
+	const numElves = 5
 	// ------- SEMAPHORES -------
-	ss := Sem{"santaSem", make(chan Signal), make(chan Signal)}
+	ss := Sem{"santaSem", make(chan string), make(chan string)}
 	go ss.Run()
-	ms := Sem{"mutexSem", make(chan Signal), make(chan Signal)}
+	ms := Sem{"mutexSem", make(chan string), make(chan string)}
 	go ms.Run()
-	ds := Sem{"deerSem", make(chan Signal), make(chan Signal)}
+	ds := Sem{"deerSem", make(chan string), make(chan string)}
 	go ds.Run()
-	es := Sem{"elfTex", make(chan Signal), make(chan Signal)}
+	es := Sem{"elfTex", make(chan string), make(chan string)}
 	go es.Run()
 	// Put santa to sleep
-	ss.Wait <- Signal{}
+	ss.Wait <- "inital sleep"
 	// Lock the warming hut (so deers don't go out prematurely)
-	ds.Wait <- Signal{}
+	ds.Wait <- "hut locker"
 	// ------- COUNTERS -------
 	dc := DeerCounter{0, make(chan int),
 		make(chan Signal), make(chan Signal)}

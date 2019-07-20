@@ -15,21 +15,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/main.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1292">
-              <caret line="257" column="18" lean-forward="true" selection-start-line="257" selection-start-column="18" selection-end-line="257" selection-end-column="18" />
-              <folding>
-                <element signature="e#817#864#0" />
-                <element signature="n#!!block;n#Run#1" />
-                <element signature="e#1887#1953#0" />
-                <element signature="n#!!block;n#Run#4" />
-                <element signature="e#2812#2937#0" />
-                <element signature="n#!!block;n#Run#5" />
-                <element signature="e#2766#2947#0" />
-                <element signature="n#!!block;n#santa#0" />
-                <element signature="e#4077#4219#0" />
-                <element signature="n#!!block;n#reindeer#0" />
-                <element signature="e#4980#5210#0" />
-              </folding>
+            <state relative-caret-position="374">
+              <caret line="33" column="49" lean-forward="true" selection-start-line="33" selection-start-column="49" selection-end-line="33" selection-end-column="49" />
             </state>
           </provider>
         </entry>
@@ -149,7 +136,7 @@
     <property name="go.gopath.indexing.explicitly.defined" value="true" />
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/src/main/main.go" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
@@ -176,16 +163,16 @@
   <component name="RunManager">
     <configuration name="go build main.go" type="GoApplicationRunConfiguration" factoryName="Go Application" nameIsGenerated="true">
       <module name="SantaProject" />
-      <working_directory value="C:\Users\matte\Desktop\SantaProject" />
+      <working_directory value="C:\Users\Matt\Desktop\SantaProject\src" />
       <go_parameters value="-i" />
       <kind value="FILE" />
-      <filePath value="C:\Users\matte\Desktop\SantaProject\src\main\main.go" />
+      <filePath value="C:\Users\Matt\Desktop\SantaProject\src\main\main.go" />
       <directory value="$PROJECT_DIR$/" />
       <method v="2" />
     </configuration>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1382" height="754" extended-state="6" />
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" weight="0.42057487" />
@@ -193,7 +180,7 @@
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.3236715" />
-      <window_info anchor="bottom" id="Run" order="2" weight="0.4009662" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.40086675" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.3993559" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -216,21 +203,8 @@
     <entry file="file://$PROJECT_DIR$/src/package/package.go" />
     <entry file="file://$PROJECT_DIR$/src/main/main.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1292">
-          <caret line="257" column="18" lean-forward="true" selection-start-line="257" selection-start-column="18" selection-end-line="257" selection-end-column="18" />
-          <folding>
-            <element signature="e#817#864#0" />
-            <element signature="n#!!block;n#Run#1" />
-            <element signature="e#1887#1953#0" />
-            <element signature="n#!!block;n#Run#4" />
-            <element signature="e#2812#2937#0" />
-            <element signature="n#!!block;n#Run#5" />
-            <element signature="e#2766#2947#0" />
-            <element signature="n#!!block;n#santa#0" />
-            <element signature="e#4077#4219#0" />
-            <element signature="n#!!block;n#reindeer#0" />
-            <element signature="e#4980#5210#0" />
-          </folding>
+        <state relative-caret-position="374">
+          <caret line="33" column="49" lean-forward="true" selection-start-line="33" selection-start-column="49" selection-end-line="33" selection-end-column="49" />
         </state>
       </provider>
     </entry>
