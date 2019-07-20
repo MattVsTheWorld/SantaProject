@@ -154,7 +154,7 @@ func santa (santaSem *Sem, mutexSem *Sem, deerSem *Sem, deerCounter *DeerCounter
 			fmt.Printf("*** Help Elves ***\n")
 			for i:= 1; i<=3; i++ {
 				elfCounter.helpElf <- Signal{}
-			}// TODO: signal/help the 3 elves; correct?
+			}
 			/* sleep for at most 2 seconds */
 			time.Sleep(time.Duration(rand.Int63n(2*1e9)))
 			fmt.Printf("🎁🎁🎁 Helped three elves! 🎁🎁🎁\n------------\n")
@@ -164,6 +164,7 @@ func santa (santaSem *Sem, mutexSem *Sem, deerSem *Sem, deerCounter *DeerCounter
 			//	fmt.Println("Santa timed out after 5s")
 		}
 		mutexSem.Signal <- "Santa"
+		fmt.Printf("Santa is done; back to sleep...\n")
 
 	}
 }
