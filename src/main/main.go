@@ -39,6 +39,7 @@ type ElfCounter struct{
 	elfNum			int
 	problem 		chan int
 	solveProblem	chan Signal
+	helpElf			chan Signal
 }
 
 func (self *ElfCounter) Run(elfTex *Sem, santaSem *Sem){
@@ -46,34 +47,42 @@ func (self *ElfCounter) Run(elfTex *Sem, santaSem *Sem){
 	fmt.Printf("> elfCounter goroutine started\n")
 	curVal = self.elfNum
 	for {
-		if curVal == 3{
-			fmt.Printf("Three elves have problems! Waking up santa...\n")
-			// Signal santa
-			santaSem.Signal <- "elfCounter"
-			// Last elf asks for problem to be solved, but does not release elfTex
-			//elfId := <- self.solveProblem
-			<- self.solveProblem
-			fmt.Printf("Solved and elf's problem!\n")
-			curVal--
-			//fmt.Printf("Solved elf n°%d's problem!\n", elfId)
-		} else if curVal < 3{
+		//if curVal == 3{
+		//	fmt.Printf("Three elves have problems! Waking up santa...\n")
+		//	// Signal santa
+		//	santaSem.Signal <- "elfCounter"
+		//	// Last elf asks for problem to be solved, but does not release elfTex
+		//	//elfId := <- self.solveProblem
+		//	self.solveProblem <- Signal{}
+		//	fmt.Printf("Solved and elf's problem!\n")
+		//	curVal--
+		//	fmt.Printf(" > > > (curVal = 3) Number of elves: %d\n", curVal)
+		//	//fmt.Printf("Solved elf n°%d's problem!\n", elfId)
+		//} else {
 		select {
 			case elfId := <- self.problem:
-				fmt.Printf("Elf n°%d has a problem!\n", elfId)
-				elfTex.Signal <- "elfCounter"
+				fmt.Printf("(ELFCOUNTER): Signal elf %d has a problem\n", elfId)
 				curVal++
-			case <- self.solveProblem:
-				//fmt.Printf("Solved elf n°%d's problem!\n", elfId)
-				fmt.Printf("Solved and elf's problem!\n")
-				// The last elf having its problem solved releases ElfTex
-				if curVal == 1 {
+				//elfTex.Signal <- "elfCounter"	// let someone else in
+				if curVal == 3 {
+					fmt.Printf("Three elves have problems! Waking up santa...\n")
+					santaSem.Signal <- "elfCounter"
+				} else {
 					elfTex.Signal <- "elfCounter"
 				}
+				fmt.Printf("> > > (problem) Number of elves: %d\n", curVal)
+			case self.solveProblem <- Signal{}:
+				fmt.Printf("Solved an elf's problem!\n")
 				curVal--
+				fmt.Printf(" > > > (solveProblem) Number of elves: %d\n", curVal)
+				// The last elf having its problem solved releases ElfTex
+				if curVal == 0 {
+					elfTex.Signal <- "elfCounter"
+				}
 			}
 		}
-	}
 }
+
 
 type DeerCounter struct{
 	deerNum 		int
@@ -148,9 +157,12 @@ func santa (santaSem *Sem, mutexSem *Sem, deerSem *Sem, deerCounter *DeerCounter
 
 		// checkDeers.SantaElves
 		case <- deerCounter.CheckDeers:
+			/* sleep for at most 2 seconds */
+			time.Sleep(time.Duration(rand.Int63n(2*1e9)))
+
 			fmt.Printf("* help elves *\n")
 			for i:= 1; i<=3; i++ {
-				elfCounter.solveProblem <- Signal{}
+				elfCounter.helpElf <- Signal{}
 			}// TODO: signal/help the 3 elves; correct?
 			/* sleep for at most 2 seconds */
 			time.Sleep(time.Duration(rand.Int63n(2*1e9)))
@@ -219,19 +231,24 @@ mutex . signal ()
 */
 func elf(mutexSem *Sem, elfTex *Sem, elfCount *ElfCounter, elfId int){
 	fmt.Printf("Elf %d has gone to work ...\n", elfId)
+	//helpElf := make(chan Signal)
+
 	for {
 		// Elf works for 2 to 10 seconds before he has a problem. Yikes!
 		time.Sleep(time.Duration(rand.Int63n(8*1e9) + 2*1e9))
 		elfTex.Wait 		<- "Elf " + strconv.Itoa(elfId)
 		mutexSem.Wait 		<- "Elf " + strconv.Itoa(elfId)
+		//fmt.Printf("It is I, brutus.\n")
 		// The elf that wants its problem solves communicates its ID
-		elfCount.problem 	<- elfId
+		elfCount.problem 	<- elfId						// Increments number of elves
 		mutexSem.Signal 	<- "Elf " + strconv.Itoa(elfId)
-		//<- self.helpElf 	// TODO: check helpElf
-
-		//mutexSem.Wait <- Signal{}		// TODO: issue, can't do this without helpElf
-		<- elfCount.solveProblem
-		//mutexSem.Signal <- Signal{}
+		<- elfCount.helpElf 									// TODO: check helpElf
+		fmt.Printf("elf %d has gotten help\n", elfId)
+		mutexSem.Wait 		<- "Elf " + strconv.Itoa(elfId)		// TODO: issue, can't do this without helpElf
+		fmt.Printf("VICTORY.\n")
+		<- elfCount.solveProblem								// Elf was helped, solve your own problems!
+		//fmt.Printf("I'M ACTUALLY A GOD, PROBLEM SOLVED\n")
+		mutexSem.Signal 	<- "Elf " + strconv.Itoa(elfId)
 
 
 	}
@@ -257,7 +274,7 @@ func main(){
 	dc := DeerCounter{0, make(chan int),
 		make(chan Signal), make(chan Signal)}
 	go dc.Run(&ss)
-	ec := ElfCounter{0, make(chan int), make(chan Signal) }
+	ec := ElfCounter{0, make(chan int), make(chan Signal), make(chan Signal) }
 	go ec.Run(&es, &ss)
 
 	// ------- ENTITIES -------
@@ -275,5 +292,5 @@ func main(){
 	go santa(&ss, &ms, &ds, &dc, &ec)
 
 	// All goroutines are killed when main ends
-	time.Sleep(time.Duration(30*time.Second))
+	time.Sleep(time.Duration(120*time.Second))
 }
