@@ -28,10 +28,13 @@ func (self *Sem) Run() {
 	fmt.Printf("> %s semaphore goroutine started\n", self.name)
 	for {
 		// aspetta il segnale su wait, lo butta
-		whoWait := <- self.Wait
-		fmt.Printf("> Wait called: someone accessed %s (%s) ...\n", self.name, whoWait)
-		whoSignal := <- self.Signal
-		fmt.Printf("> Signal called: %s released (%s)...\n-------------\n", self.name, whoSignal)
+		<- self.Wait
+		<- self.Signal
+
+		//whoWait := <- self.Wait
+		//fmt.Printf("> Wait called: someone accessed %s (%s) ...\n", self.name, whoWait)
+		//whoSignal := <- self.Signal
+		//fmt.Printf("> Signal called: %s released (%s)...\n-------------\n", self.name, whoSignal)
 	}
 }
 
@@ -47,21 +50,9 @@ func (self *ElfCounter) Run(elfTex *Sem, santaSem *Sem){
 	fmt.Printf("> elfCounter goroutine started\n")
 	curVal = self.elfNum
 	for {
-		//if curVal == 3{
-		//	fmt.Printf("Three elves have problems! Waking up santa...\n")
-		//	// Signal santa
-		//	santaSem.Signal <- "elfCounter"
-		//	// Last elf asks for problem to be solved, but does not release elfTex
-		//	//elfId := <- self.solveProblem
-		//	self.solveProblem <- Signal{}
-		//	fmt.Printf("Solved and elf's problem!\n")
-		//	curVal--
-		//	fmt.Printf(" > > > (curVal = 3) Number of elves: %d\n", curVal)
-		//	//fmt.Printf("Solved elf n°%d's problem!\n", elfId)
-		//} else {
 		select {
 			case elfId := <- self.problem:
-				fmt.Printf("(ELFCOUNTER): Signal elf %d has a problem\n", elfId)
+				fmt.Printf("⛄ Elf %d has a problem!\n", elfId)
 				curVal++
 				//elfTex.Signal <- "elfCounter"	// let someone else in
 				if curVal == 3 {
@@ -70,11 +61,11 @@ func (self *ElfCounter) Run(elfTex *Sem, santaSem *Sem){
 				} else {
 					elfTex.Signal <- "elfCounter"
 				}
-				fmt.Printf("> > > (problem) Number of elves: %d\n", curVal)
+				//fmt.Printf("> > > (problem) Number of elves: %d\n", curVal)
 			case self.solveProblem <- Signal{}:
-				fmt.Printf("Solved an elf's problem!\n")
+				//fmt.Printf("Solved an elf's problem!\n")
 				curVal--
-				fmt.Printf(" > > > (solveProblem) Number of elves: %d\n", curVal)
+				//fmt.Printf(" > > > (solveProblem) Number of elves: %d\n", curVal)
 				// The last elf having its problem solved releases ElfTex
 				if curVal == 0 {
 					elfTex.Signal <- "elfCounter"
@@ -108,10 +99,10 @@ func (self *DeerCounter) Run(santaSem *Sem) {
 
 		} else if curVal < 9 {
 			select {
-				case i:= <- self.Return: 		// TODO: check, ma ha senso che lo riceva
-					fmt.Printf("> Deer n°%d has returned.\n",i)
+				case i:= <- self.Return:
+					fmt.Printf("♞ Deer n°%d has returned!\n",i)
 					curVal = curVal + 1
-					fmt.Printf("Number of deers: %d\n", curVal)
+					//fmt.Printf("Number of deers: %d\n", curVal)
 				case self.CheckDeers <- Signal{}:
 					fmt.Println("> Deers are still on vacation: Best help elves.")
 					//Timeout if no choice is made
@@ -142,31 +133,31 @@ func santa (santaSem *Sem, mutexSem *Sem, deerSem *Sem, deerCounter *DeerCounter
 		mutexSem.Wait <- "Santa"
 		// ++ Wait a second ++
 		time.Sleep(time.Duration(time.Second))
-		fmt.Println("Santa is awake, choosing who to help...")
+		fmt.Println("🎅 Santa is awake, choosing who to help...")
 		select {
 		//SantaDeers
 		case deerCounter.PrepareSleigh <- Signal{}:
-			fmt.Printf("* prepareSleigh *\n")
+			fmt.Printf("*** Prepare Sleigh ***\n")
 			// Signal deers
 			for i:=1; i<=9; i++ {
 				deerSem.Signal <- "Santa"
 			}
 			/* sleep for at most 2 seconds */
 			time.Sleep(time.Duration(rand.Int63n(2*1e9)))
-			fmt.Printf("Christmas time!\n------------\n")
+			fmt.Printf("✨✨✨ Reindeers hitched; Christmas time! ✨✨✨\n------------\n")
 
 		// checkDeers.SantaElves
 		case <- deerCounter.CheckDeers:
 			/* sleep for at most 2 seconds */
 			time.Sleep(time.Duration(rand.Int63n(2*1e9)))
 
-			fmt.Printf("* help elves *\n")
+			fmt.Printf("*** Help Elves ***\n")
 			for i:= 1; i<=3; i++ {
 				elfCounter.helpElf <- Signal{}
 			}// TODO: signal/help the 3 elves; correct?
 			/* sleep for at most 2 seconds */
 			time.Sleep(time.Duration(rand.Int63n(2*1e9)))
-			fmt.Printf("Helped three elves!\n------------\n")
+			fmt.Printf("🎁🎁🎁 Helped three elves! 🎁🎁🎁\n------------\n")
 
 			//Timeout if no choice is made
 			//case <-time.After(5*time.Second):
@@ -191,8 +182,8 @@ getHitched ()
 func reindeer (mutexSem *Sem, deerSem *Sem, deerCount *DeerCounter, deerNo int){
 	//for {	// TODO: endless loop?
 		fmt.Printf("Reindeer %d is going on vacation... Will be back eventually!\n", deerNo)
-		// Deer stays on vacation for 4 to 8 seconds.
-		time.Sleep(time.Duration(rand.Int63n(4*1e9) + 4*1e9))
+		// Deer stays on vacation for 4 to 12 seconds.
+		time.Sleep(time.Duration(rand.Int63n(4*1e9) + 8*1e9))
 
 		/* sleep for at most 2 seconds */
 		time.Sleep(time.Duration(rand.Int63n(2*1e9)))
@@ -242,19 +233,19 @@ func elf(mutexSem *Sem, elfTex *Sem, elfCount *ElfCounter, elfId int){
 		// The elf that wants its problem solves communicates its ID
 		elfCount.problem 	<- elfId						// Increments number of elves
 		mutexSem.Signal 	<- "Elf " + strconv.Itoa(elfId)
-		<- elfCount.helpElf 									// TODO: check helpElf
-		fmt.Printf("elf %d has gotten help\n", elfId)
-		mutexSem.Wait 		<- "Elf " + strconv.Itoa(elfId)		// TODO: issue, can't do this without helpElf
-		fmt.Printf("VICTORY.\n")
+		<- elfCount.helpElf
+		fmt.Printf("Elf %d has gotten help\n", elfId)
+		mutexSem.Wait 		<- "Elf " + strconv.Itoa(elfId)
+		//fmt.Printf("VICTORY.\n")
 		<- elfCount.solveProblem								// Elf was helped, solve your own problems!
 		//fmt.Printf("I'M ACTUALLY A GOD, PROBLEM SOLVED\n")
 		mutexSem.Signal 	<- "Elf " + strconv.Itoa(elfId)
-
+		fmt.Printf("Elf %d is happy and goes back to work ...\n", elfId)
 
 	}
 }
 
-func main(){
+func main(){	// TODO: fix all these sleeps
 	fmt.Println("> Starting program...")
 	const numElves = 5
 	// ------- SEMAPHORES -------
