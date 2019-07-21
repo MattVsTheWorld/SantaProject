@@ -46,7 +46,7 @@ func (self *Sem) Run() {
 type ElfCounter struct{
 	elfNum			int					// Tracks the initial number of troubled elves
 	problem 		chan int			// Elf communicates he has a problem
-	solveProblem	chan Signal			// TODO: check
+	solveProblem	chan Signal			// Elf communicates he has solved the problem
 	helpElf			chan Signal			// Expose a channel that Santa will use to help the elves
 }
 
@@ -74,7 +74,8 @@ func (self *ElfCounter) Run(elfTex *Sem, santaSem *Sem){
 				// Less than 3 elves have asked for help; more are allowed in before Santa is woken up
 					elfTex.Signal <- "elfCounter"
 				}
-			case self.solveProblem <- Signal{}:
+			// Waits for an elf to say that a problem has been solved
+			case <- self.solveProblem:
 				curVal--
 				// The last elf having its problem solved releases ElfTex
 				// This allows more troubled elves to ask for help
@@ -145,7 +146,7 @@ func santa (santaSem *Sem, mutexSem *Sem, deerSem *Sem, deerCounter *DeerCounter
 	for {
 		// Santa sleeps until the Wait channel is available
 		santaSem.Wait <- "Santa"
-		// Close the shared mutex
+		// Lock the shared mutex
 		mutexSem.Wait <- "Santa"
 		fmt.Println("🎅 Santa is awake, choosing who to help...")
 		select {
@@ -205,7 +206,7 @@ func reindeer (mutexSem *Sem, deerSem *Sem, deerCount *DeerCounter, deerNo int){
 	// Goes on vacation for 4 to 10 seconds, then comes back to prepare for Christmas
 	for {
 		fmt.Printf("Reindeer %d is going on vacation... Will be back eventually!\n", deerNo)
-		// Deer stays on vacation for 4 to 10 seconds.
+		// Deer stays on vacation for 4 to 10 seconds
 		time.Sleep(time.Duration(rand.Int63n(4*1e9) + 6*1e9))
 		// Lock the shared mutex
 		mutexSem.Wait <- "Reindeer " + strconv.Itoa(deerNo)
@@ -243,19 +244,32 @@ mutex . wait ()
 mutex . signal ()
 */
 func elf(mutexSem *Sem, elfTex *Sem, elfCount *ElfCounter, elfId int){
+	// Elf process
+	// Works for 4 to 10 seconds, then makes a mess and asks for Santa's help
 	fmt.Printf("Elf %d has gone to work ...\n", elfId)
 	for {
-		// Elf works for 4 to 10 seconds before he has a problem. Yikes!
+		// Elf works for 4 to 10 seconds before he has a problem
 		time.Sleep(time.Duration(rand.Int63n(6*1e9) + 4*1e9))
+		// Lock elfTex, only shared among elves
+		// This will eventually be released by elfCounter under certain conditions
 		elfTex.Wait 		<- "Elf " + strconv.Itoa(elfId)
+		// Lock the shared mutex
 		mutexSem.Wait 		<- "Elf " + strconv.Itoa(elfId)
-		// The elf that wants its problem solves communicates its ID
-		elfCount.problem 	<- elfId								// Increments number of elves
+
+		// Communicate on the on "problem" channel that help is required
+		elfCount.problem 	<- elfId
+
+		// Release the shared mutex
 		mutexSem.Signal 	<- "Elf " + strconv.Itoa(elfId)
+		// Ask for help
+		// The helpElf channel is provided by elfCounter, who allows the santa and elves goroutines to communicate
 		<- elfCount.helpElf
 		fmt.Printf("Elf %d has gotten help\n", elfId)
+		// Lock the shared mutex while solving the problem
 		mutexSem.Wait 		<- "Elf " + strconv.Itoa(elfId)
-		<- elfCount.solveProblem									// Elf was helped, solve your own problems!	// TODO: check
+		// Let the elfCounter know that the problem has been solved
+		elfCount.solveProblem <- Signal{}
+		// Release the shared mutex
 		mutexSem.Signal 	<- "Elf " + strconv.Itoa(elfId)
 		fmt.Printf("Elf %d is happy and goes back to work ...\n", elfId)
 
@@ -274,7 +288,7 @@ func main(){
 	go ds.Run()
 	es := Sem{"elfTex", make(chan string), make(chan string)}
 	go es.Run()
-	// Put santa to sleep
+	// Put Santa to sleep
 	ss.Wait <- "initial sleep"
 	// Lock the warming hut (so reindeer don't go out prematurely)
 	ds.Wait <- "hut locker"
