@@ -317,4 +317,5 @@ func main(){
 	// All goroutines are killed when main ends
 	// Run program for at least two minutes
 	time.Sleep(time.Duration(2*time.Minute))
+	fmt.Printf("> Time's up, program ending...")
 }
